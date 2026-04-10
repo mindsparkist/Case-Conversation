@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Case Converter</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(160deg, #e8eaf6 0%, #f2f2f7 40%, #e3f0ff 100%);
+      display: flex; flex-direction: column; align-items: center;
+      padding: 40px 16px 48px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      body { background: linear-gradient(160deg, #0a0a12 0%, #0d0d1a 50%, #060d1a 100%); }
+    }
+
+    .card {
+      width: 100%; max-width: 480px;
+      background: rgba(255, 255, 255, 0.72);
+      border: 0.5px solid rgba(255, 255, 255, 0.85);
+      border-radius: 28px;
+      padding: 28px 24px 24px;
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.10), 0 2px 8px rgba(0,0,0,0.06);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .card {
+        background: rgba(28, 28, 38, 0.78);
+        border-color: rgba(255, 255, 255, 0.09);
+        box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+      }
+    }
+
+    .app-title {
+      font-size: 22px; font-weight: 700; letter-spacing: -0.5px;
+      color: #1c1c1e; text-align: center; margin-bottom: 22px;
+    }
+
+    @media (prefers-color-scheme: dark) { .app-title { color: #f2f2f7; } }
+
+    textarea {
+      width: 100%; min-height: 120px; resize: vertical;
+      font-family: inherit; font-size: 16px; line-height: 1.6;
+      color: #1c1c1e;
+      background: rgba(255, 255, 255, 0.55);
+      border: 0.5px solid rgba(0, 0, 0, 0.10);
+      border-radius: 16px;
+      padding: 14px 16px;
+      outline: none;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+
+    textarea::placeholder { color: #aeaeb2; }
+    textarea:focus {
+      box-shadow: 0 0 0 3.5px rgba(0,122,255,0.22);
+      border-color: rgba(0,122,255,0.35);
+    }
+
+    @media (prefers-color-scheme: dark) {
+      textarea {
+        color: #f2f2f7;
+        background: rgba(44, 44, 56, 0.65);
+        border-color: rgba(255,255,255,0.10);
+      }
+    }
+
+    .char-count {
+      font-size: 11.5px; color: #aeaeb2;
+      text-align: right; margin-top: 6px;
+    }
+
+    .section-label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 0.7px; text-transform: uppercase;
+      color: #8e8e93; margin: 20px 0 10px;
+    }
+
+    .btn-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+
+    .cvt-btn {
+      display: flex; align-items: center; gap: 10px;
+      background: rgba(255, 255, 255, 0.60);
+      border: 0.5px solid rgba(0, 0, 0, 0.09);
+      border-radius: 14px;
+      padding: 13px 15px;
+      font-family: inherit; font-size: 14px; font-weight: 500;
+      color: #1c1c1e; cursor: pointer; text-align: left;
+      transition: transform 0.12s, background 0.12s, box-shadow 0.12s;
+    }
+
+    .cvt-btn:hover {
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: 0 2px 10px rgba(0,0,0,0.07);
+    }
+    .cvt-btn:active { transform: scale(0.95); background: rgba(240,240,245,0.9); }
+
+    @media (prefers-color-scheme: dark) {
+      .cvt-btn {
+        background: rgba(44, 44, 56, 0.60);
+        border-color: rgba(255,255,255,0.08);
+        color: #f2f2f7;
+      }
+      .cvt-btn:hover { background: rgba(58, 58, 74, 0.85); }
+      .cvt-btn:active { background: rgba(36, 36, 50, 0.9); }
+    }
+
+    .cvt-btn svg { flex-shrink: 0; opacity: 0.70; }
+
+    .btn-label { display: flex; flex-direction: column; }
+    .btn-label .main  { font-size: 13.5px; font-weight: 500; }
+    .btn-label .preview {
+      font-size: 11px; color: #8e8e93;
+      margin-top: 2px;
+      font-family: "SF Mono", "Menlo", "Consolas", monospace;
+    }
+
+    .copy-row { display: flex; gap: 10px; margin-top: 16px; }
+
+    .copy-btn {
+      flex: 1; display: flex; align-items: center; justify-content: center; gap: 8px;
+      background: #007aff; border: none; border-radius: 14px;
+      padding: 15px; font-family: inherit; font-size: 15px; font-weight: 600;
+      color: #fff; cursor: pointer;
+      box-shadow: 0 4px 18px rgba(0,122,255,0.30);
+      transition: transform 0.12s, background 0.12s, opacity 0.12s;
+    }
+    .copy-btn:hover { background: #0071f0; }
+    .copy-btn:active { transform: scale(0.95); opacity: 0.88; }
+    .copy-btn.done { background: #34c759; box-shadow: 0 4px 18px rgba(52,199,89,0.30); }
+
+    .clear-btn {
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255,59,48,0.10);
+      border: 0.5px solid rgba(255,59,48,0.20);
+      border-radius: 14px; padding: 15px 20px;
+      font-family: inherit; font-size: 14px; font-weight: 500;
+      color: #ff3b30; cursor: pointer;
+      transition: transform 0.12s, background 0.12s;
+    }
+    .clear-btn:hover { background: rgba(255,59,48,0.16); }
+    .clear-btn:active { transform: scale(0.95); }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="app-title">Case Converter</div>
+
+    <textarea id="inputText" placeholder="Enter text here…" oninput="updateCount()"></textarea>
+    <div class="char-count" id="charCount">0 characters</div>
+
+    <div class="section-label">Conversions</div>
+    <div class="btn-grid">
+
+      <button class="cvt-btn" onclick="go('toggle')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M7 16V4m0 0L3 8m4-4 4 4"/><path d="M17 8v12m0 0 4-4m-4 4-4-4"/>
+        </svg>
+        <span class="btn-label">
+          <span class="main">Toggle Case</span>
+          <span class="preview">hElLo → HeLLo</span>
+        </span>
+      </button>
+
+      <button class="cvt-btn" onclick="go('snake')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 6h16M4 12h10M4 18h6"/>
+        </svg>
+        <span class="btn-label">
+          <span class="main">Snake Case</span>
+          <span class="preview">hello_world</span>
+        </span>
+      </button>
+
+      <button class="cvt-btn" onclick="go('lower')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 7h16M4 12h10M4 17h7"/>
+        </svg>
+        <span class="btn-label">
+          <span class="main">Lower Case</span>
+          <span class="preview">hello world</span>
+        </span>
+      </button>
+
+      <button class="cvt-btn" onclick="go('upper')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 6h16M4 11h16M4 16h10"/>
+        </svg>
+        <span class="btn-label">
+          <span class="main">Upper Case</span>
+          <span class="preview">HELLO WORLD</span>
+        </span>
+      </button>
+
+      <button class="cvt-btn" onclick="go('capitalize')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/>
+        </svg>
+        <span class="btn-label">
+          <span class="main">Capitalized</span>
+          <span class="preview">Hello World</span>
+        </span>
+      </button>
+
+      <button class="cvt-btn" onclick="go('alternate')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2v20M2 12h20"/><path d="M6 6h.01M18 18h.01"/>
+        </svg>
+        <span class="btn-label">
+          <span class="main">Alternating</span>
+          <span class="preview">hElLo wOrLd</span>
+        </span>
+      </button>
+
+      <button class="cvt-btn" onclick="go('sentence')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 6h16M4 12h12M4 18h8"/>
+          <circle cx="20" cy="18" r="1.5" fill="currentColor" stroke="none"/>
+        </svg>
+        <span class="btn-label">
+          <span class="main">Sentence Case</span>
+          <span class="preview">Hello world.</span>
+        </span>
+      </button>
+
+      <button class="cvt-btn" onclick="go('title')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="5" width="18" height="14" rx="2"/><path d="M8 9h8M10 13h4"/>
+        </svg>
+        <span class="btn-label">
+          <span class="main">Title Case</span>
+          <span class="preview">The Quick Brown Fox</span>
+        </span>
+      </button>
+
+    </div>
+
+    <div class="copy-row">
+      <button class="copy-btn" id="copyBtn" onclick="copyText()">
+        <svg id="copyIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="9" y="9" width="13" height="13" rx="2"/>
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+        </svg>
+        <span id="copyLabel">Copy</span>
+      </button>
+      <button class="clear-btn" onclick="clearAll()" title="Clear">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="3 6 5 6 21 6"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+          <path d="M10 11v6M14 11v6"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const smallWords = new Set([
+      'a','an','the','and','but','or','for','nor',
+      'on','at','to','by','in','of','up','as','is','it'
+    ]);
+
+    function convertText(type, text) {
+      switch (type) {
+        case 'toggle':
+          return text.split('').map(c =>
+            c === c.toUpperCase() ? c.toLowerCase() : c.toUpperCase()
+          ).join('');
+
+        case 'snake':
+          return text.trim()
+            .toLowerCase()
+            .replace(/[\s\-]+/g, '_')
+            .replace(/[^a-z0-9_]/g, '');
+
+        case 'lower':
+          return text.toLowerCase();
+
+        case 'upper':
+          return text.toUpperCase();
+
+        case 'capitalize':
+          return text.toLowerCase().replace(/\b\w/g, c => c.toUpperCase());
+
+        case 'alternate':
+          let i = 0;
+          return text.split('').map(c =>
+            /[a-z]/i.test(c) ? (i++ % 2 === 0 ? c.toLowerCase() : c.toUpperCase()) : c
+          ).join('');
+
+        case 'sentence':
+          return text.toLowerCase()
+            .replace(/(^\s*\w|[.!?]\s+\w)/g, c => c.toUpperCase());
+
+        case 'title':
+          return text.toLowerCase().split(' ').map((word, idx) => {
+            const clean = word.replace(/[^a-z0-9]/gi, '');
+            if (idx === 0 || !smallWords.has(clean)) {
+              return word.charAt(0).toUpperCase() + word.slice(1);
+            }
+            return word;
+          }).join(' ');
+
+        default:
+          return text;
+      }
+    }
+
+    function go(type) {
+      if (navigator.vibrate) navigator.vibrate(10);
+      const ta = document.getElementById('inputText');
+      ta.value = convertText(type, ta.value);
+      updateCount();
+    }
+
+    function updateCount() {
+      const len = document.getElementById('inputText').value.length;
+      document.getElementById('charCount').textContent =
+        len + (len === 1 ? ' character' : ' characters');
+    }
+
+    function copyText() {
+      if (navigator.vibrate) navigator.vibrate(10);
+      const text = document.getElementById('inputText').value;
+      if (!text) return;
+      navigator.clipboard.writeText(text).then(() => {
+        const btn  = document.getElementById('copyBtn');
+        const icon = document.getElementById('copyIcon');
+        const lbl  = document.getElementById('copyLabel');
+        btn.classList.add('done');
+        lbl.textContent = 'Done';
+        icon.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+        setTimeout(() => {
+          btn.classList.remove('done');
+          lbl.textContent = 'Copy';
+          icon.innerHTML = `
+            <rect x="9" y="9" width="13" height="13" rx="2"/>
+            <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+          `;
+        }, 2000);
+      });
+    }
+
+    function clearAll() {
+      if (navigator.vibrate) navigator.vibrate(10);
+      document.getElementById('inputText').value = '';
+      updateCount();
+    }
+  </script>
+</body>
+</html>
